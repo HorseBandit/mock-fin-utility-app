@@ -1,0 +1,113 @@
+<!-- templates/query_interface.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Financial Query Interface with RAG</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 14px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: #D8000C;
+            background-color: #FFBABA;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+        .answer {
+            color: #4F8A10;
+            background-color: #DFF2BF;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+    </style>
+    <script>
+        async function submitQuery() {
+            const query = document.getElementById('query').value.trim();
+            const resultElement = document.getElementById('result');
+            resultElement.classList.remove('error', 'answer');
+            resultElement.innerText = 'Processing...';
+
+            if (!query) {
+                resultElement.classList.add('error');
+                resultElement.innerText = 'Please enter a query.';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/query/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query: query})
+                });
+                const result = await response.json();
+                if (result.error) {
+                    resultElement.classList.add('error');
+                    resultElement.innerText = `Error: ${result.error}`;
+                } else {
+                    // Check if the answer contains a calculation explanation
+                    if (result.answer.toLowerCase().includes('calculation')) {
+                        resultElement.classList.add('answer');
+                        resultElement.innerHTML = `<strong>Answer:</strong>\n${result.answer.replace(/\n/g, '<br>')}`;
+                    } else {
+                        resultElement.classList.add('answer');
+                        resultElement.innerText = `Answer: ${result.answer}`;
+                    }
+                }
+            } catch (error) {
+                resultElement.classList.add('error');
+                resultElement.innerText = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Financial Query Interface</h2>
+        <p>Ask any financial question using natural language.</p>
+        <input type="text" id="query" placeholder="e.g., What was gross margin Q1 2023? or How was the gross margin calculated?">
+        <button onclick="submitQuery()">Submit</button>
+        <div id="result"></div>
+    </div>
+</body>
+</html>

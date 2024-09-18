@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "utility-analytics-llm"
+version = "0.1.0"
+description = ""
+authors = ["Jerrod Estell <jrodmath1@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flask = "^3.0.3"
+flask-sqlalchemy = "^3.1.1"
+psycopg2-binary = "^2.9.9"
+pandas = "^2.2.2"
+numpy = "^2.1.1"
+faker = "^28.4.1"
+openai = "^1.46.0"
+pinecone = "^5.3.0"
+python-dotenv = "^1.0.1"
+flask-cors = "^5.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+black = "^24.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
