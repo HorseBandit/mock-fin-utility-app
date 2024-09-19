@@ -1,39 +1,59 @@
-# scripts/generate_embeddings.py
+import time
 import pandas as pd
-from openai import OpenAI
-from pinecone import Pinecone
-import sys
 import os
+import sys
+from pinecone import Pinecone
+from langchain_community.document_loaders import DirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
+from pinecone import ServerlessSpec
+
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 from config import Config
-import os
 
-# Initialize OpenAI
-client = OpenAI(
-  api_key=os.environ['OPENAI_API_KEY'],  # this is also the default, it can be omitted
-)
+os.environ['OPENAI_API_KEY'] = Config.OPENAI_API_KEY
 
-myapikey = Config.PINECONE_API_KEY
-pc = Pinecone(api_key=myapikey)
-index = pc.list_indexes().names()
+# Initialize Pinecone using the new import and methods
+pc = Pinecone(api_key=Config.PINECONE_API_KEY)
 
-# Function to generate embeddings using the updated OpenAI API
-def generate_embedding(text, model="text-embedding-3-small"):
-    try:
-        # Replace newlines in the text
-        text = text.replace("\n", " ")
-        # Call OpenAI's new API to generate embeddings
-        response = client.embeddings.create(input=[text], model=model)
-        return response.data[0].embedding
-    except Exception as e:
-        print(f"Error generating embedding for text '{text}': {e}")
-        return None
+cloud = 'Azure'
+region = 'eastus2'
+index_name = "starter-index"
+spec = ServerlessSpec(cloud=cloud, region=region)
+#if index_name not in pc.list_indexes():
+    #pc.create_index(index_name, dimension=1536)
 
-# Function to upsert data into Pinecone
-def upsert_pinecone(data_df, data_type):
+# Use the index
+import time
+
+# check if index already exists (it shouldn't if this is first time)
+if index_name not in pc.list_indexes().names():
+    # if does not exist, create index
+    pc.create_index(
+        index_name,
+        dimension=1536,  # dimensionality of text-embedding-ada-002
+        metric='cosine',
+        spec=spec
+    )
+    # wait for index to be initialized
+    time.sleep(1)
+
+# connect to index
+index = pc.Index(index_name)
+# view index stats
+
+# LangChain OpenAI Embeddings model
+embedding_model = OpenAIEmbeddings()
+
+# Function to upsert data into Pinecone using LangChain
+def upsert_pinecone(data_df, data_type, namespace="default", batch_size=200):
     vectors = []
+    texts = []
+    metadata_list = []
+    unique_ids = []
+
     for idx, row in data_df.iterrows():
         if data_type == 'ferc':
             text = f"account number: {row['account_number']}, description: {row['account_description']}, debit: {row['debit']}, credit: {row['credit']}, period: {row['period']}, entity: {row['entity']}"
@@ -83,20 +103,23 @@ def upsert_pinecone(data_df, data_type):
         else:
             continue  # Unknown data type
 
-        # Generate embedding
-        embedding = generate_embedding(text)
-        if embedding is not None:
-            vectors.append((unique_id, embedding, metadata))
+        texts.append(text)
+        metadata_list.append(metadata)
+        unique_ids.append(unique_id)
 
-    # Upsert in batches to Pinecone (e.g., 1000 at a time)
-    batch_size = 1000
-    for i in range(0, len(vectors), batch_size):
-        batch = vectors[i:i + batch_size]
-        try:
-            index.upsert(vectors=batch)
-            print(f"Upserted batch {i // batch_size + 1} / {len(vectors) // batch_size + 1}")
-        except Exception as e:
-            print(f"Error during Pinecone upsert: {e}")
+        # Batch processing
+        if len(texts) == batch_size:
+            embeddings = embedding_model.embed_documents(texts)
+            index.upsert(vectors=[{"id": unique_ids[i], "values": embeddings[i], "metadata": metadata_list[i]} for i in range(len(embeddings))], namespace=namespace)
+            texts = []
+            metadata_list = []
+            unique_ids = []
+
+    # Process remaining items after the loop
+    if texts:
+        embeddings = embedding_model.embed_documents(texts)
+        index.upsert(vectors=[{"id": unique_ids[i], "values": embeddings[i], "metadata": metadata_list[i]} for i in range(len(embeddings))], namespace=namespace)
+        print(f"Upserted {len(texts)} items to Pinecone.")
 
     print(f"All {data_type} data upserted to Pinecone.")
 
