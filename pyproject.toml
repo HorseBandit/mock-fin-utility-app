@@ -17,6 +17,9 @@ openai = "^1.46.0"
 pinecone = "^5.3.0"
 python-dotenv = "^1.0.1"
 flask-cors = "^5.0.0"
+pyodbc = "^5.1.0"
+tenacity = "^9.0.0"
+flask-migrate = "^4.0.7"
 
 
 [tool.poetry.group.dev.dependencies]

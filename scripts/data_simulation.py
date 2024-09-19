@@ -1,4 +1,3 @@
-# scripts/data_simulation.py
 import pandas as pd
 import numpy as np
 from faker import Faker
@@ -24,7 +23,7 @@ def simulate_ferc_trial_balance():
         'Debit': np.round(np.random.uniform(1000, 100000, size=num_entries), 2),
         'Credit': np.round(np.random.uniform(1000, 100000, size=num_entries), 2),
         'Period': np.random.choice(periods, size=num_entries),
-        'Entity': np.random.choice(entities, size=num_entries)
+        'entity': np.random.choice(entities, size=num_entries)  # Changed to lowercase 'entity'
     }
     ferc_df = pd.DataFrame(data)
     ferc_df.to_csv('data/simulated_ferc_trial_balance.csv', index=False)

@@ -1,18 +1,17 @@
 # routes/gpt.py
 from flask import Blueprint, request, jsonify
 import openai
-import pinecone
 from config import Config
 from models import MetricDefinition
 from sqlalchemy import text
 import re
 from models import db
+from pinecone import Pinecone
+gpt_bp = Blueprint('gpt', __name__)
 
-gpt_bp = Blueprint('gpt', __name__, url_prefix='/api/query')
+pc = Pinecone(api_key=Config.PINECONE_API_KEY)
+index = pc.Index("starter-index")
 
-# Initialize Pinecone
-pinecone.init(api_key=Config.PINECONE_API_KEY, environment=Config.PINECONE_ENVIRONMENT)
-index = pinecone.Index(Config.PINECONE_INDEX)
 
 # Initialize OpenAI
 openai.api_key = Config.OPENAI_API_KEY
@@ -78,17 +77,17 @@ def handle_query_rag():
 
         # Step 4: Construct the prompt
         prompt = f"""
-You are an AI assistant specialized in financial data analysis for an Electric Utility Company.
-You have access to the following financial data:
+        You are an AI assistant specialized in financial data analysis for an Electric Utility Company.
+        You have access to the following financial data:
 
-{context}
+        {context}
 
-Using the above data, answer the following question accurately and concisely:
+        Using the above data, answer the following question accurately and concisely:
 
-Question: {user_query}
+        Question: {user_query}
 
-Answer:
-"""
+        Answer:
+        """
 
         # Step 5: Generate response with GPT-4
         completion = openai.ChatCompletion.create(
