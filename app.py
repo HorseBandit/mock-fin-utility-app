@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -22,11 +20,11 @@ def create_app():
 
     CORS(app)  # Enable CORS if needed
 
-    # Register blueprints
-    app.register_blueprint(ferc_bp)
-    app.register_blueprint(proforma_bp)
-    app.register_blueprint(debt_bp)
-    app.register_blueprint(gpt_bp)
+    # Register blueprints with URL prefixes
+    app.register_blueprint(ferc_bp, url_prefix='/api/ferc')
+    app.register_blueprint(proforma_bp, url_prefix='/api/proforma')
+    app.register_blueprint(debt_bp, url_prefix='/api/debt')
+    app.register_blueprint(gpt_bp, url_prefix='/api/query')  # Set the prefix for GPT-related queries
 
     # Serve the frontend interface
     @app.route('/')
