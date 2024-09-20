@@ -4,27 +4,42 @@ from config import Config
 from models import MetricDefinition
 import re
 from pinecone import Pinecone
+from pinecone import ServerlessSpec
 
 gpt_bp = Blueprint('gpt', __name__)
 
 # Initialize Pinecone
 pc = Pinecone(api_key=Config.PINECONE_API_KEY)
+
+cloud = 'Azure'
+region = 'eastus2'
+index_name = "starter-index"
+spec = ServerlessSpec(cloud=cloud, region=region)
 index = pc.Index("starter-index")
 
 # Initialize OpenAI
 openai.api_key = Config.OPENAI_API_KEY
 
-# Function to generate embeddings
-def generate_embedding(text):
+# Function to generate embeddings using the new API method (single query)
+# Function to generate embeddings using the new OpenAI API method
+def generate_embedding(text, model="text-embedding-ada-002"):
     try:
-        response = openai.Embedding.create(
-            input=text,
-            model='text-embedding-ada-002'
+        # Clean the text (removing newlines, etc.)
+        cleaned_text = text.replace("\n", " ")
+
+        # Call OpenAI's embeddings API
+        response = openai.embeddings.create(
+            input=[cleaned_text],
+            model=model
         )
-        return response['data'][0]['embedding']
+        
+        # Accessing the data using dot notation instead of brackets
+        embedding = response.data[0].embedding
+        return embedding
     except Exception as e:
         print(f"Error generating embedding: {str(e)}")
         return None
+
 
 @gpt_bp.route('/', methods=['POST'])
 def handle_query_rag():
@@ -60,7 +75,7 @@ def handle_query_rag():
         try:
             top_k = 5
             response = index.query(
-                vector=query_embedding,
+                vector=query_embedding,  # Single vector as we only passed one query
                 top_k=top_k,
                 include_metadata=True
             )
