@@ -28,6 +28,17 @@ index = pc.Index(index_name)
 # view index stats
 print(index.describe_index_stats())
 
-vector_ids = ['0', '1', '2','11', '12']  # Replace with actual vector IDs you want to inspect
+#vector_ids = ['0', '1', '2','11', '12']  # Replace with actual vector IDs you want to inspect
+#result = index.fetch(ids=vector_ids)
+#print(result)
+
+vector_ids = [str(i) for i in range(12)]  # Adjust if needed to reflect actual IDs in your Pinecone index
 result = index.fetch(ids=vector_ids)
-print(result)
+
+# Check and print the fetched data
+for vector_id in vector_ids:
+    if vector_id in result['vectors']:
+        vector_data = result['vectors'][vector_id]
+        print(f"Data for vector ID {vector_id}: {vector_data}")
+    else:
+        print(f"No data found for vector ID {vector_id}")
