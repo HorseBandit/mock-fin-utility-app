@@ -58,11 +58,6 @@ def analyze():
     # Filter out any matches that are not relevant to the prompt
     relevant_data = pd.DataFrame(matched_metadata)
 
-    # If looking for a specific month like "July," you can filter this manually
-    # You can also refine this logic for other specific queries
-    #if 'July' in prompt:
-        #relevant_data = relevant_data[relevant_data['Date'].str.contains('2023-07')]
-
     # Convert relevant data to CSV string for the GPT model
     data_str = relevant_data.to_csv(index=False)
 
