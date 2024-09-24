@@ -2,17 +2,103 @@
 <html>
 <head>
     <title>Financial Analysis App</title>
+    <style>
+        body {
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4, #fad0c4, #ffecd2);
+            background-size: 400% 400%;
+            animation: disco 10s ease infinite;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transform: translateY(-1in); /* Move the content up by 1 inch */
+        }
+
+        @keyframes disco {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            font-size: 3em;
+            color: white;
+            text-align: center;
+            text-shadow: 2px 2px #000;
+            margin-bottom: 20px;
+        }
+
+        form {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        label {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #ccc;
+            font-size: 1em;
+        }
+
+        input[type="submit"] {
+            background-color: #ff007f;
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            transform: scale(1.1);
+            background-color: #ff4da6;
+        }
+
+        h2 {
+            font-size: 2em;
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+            text-shadow: 1px 1px #000;
+        }
+
+        p {
+            font-size: 1.2em;
+            color: #333;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Financial Analysis App</h1>
-    <form action="/analyze" method="post">
-        <label for="prompt">Enter your financial analysis question:</label><br>
-        <textarea id="prompt" name="prompt" rows="4" cols="50">{{ prompt if prompt else '' }}</textarea><br>
-        <input type="submit" value="Analyze">
-    </form>
-    {% if answer %}
-        <h2>Answer:</h2>
-        <p>{{ answer }}</p>
-    {% endif %}
+    <div>
+        <h1>Financial Analysis App</h1>
+        <form action="/analyze" method="post">
+            <label for="prompt">Enter your financial analysis question:</label><br>
+            <textarea id="prompt" name="prompt" rows="4" cols="50">{{ prompt if prompt else '' }}</textarea><br><br>
+            <input type="submit" value="Analyze">
+        </form>
+        {% if answer %}
+            <h2>Answer:</h2>
+            <p>{{ answer }}</p>
+        {% endif %}
+    </div>
 </body>
 </html>
